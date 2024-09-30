@@ -6,11 +6,92 @@ Go to top menu : [click me](../README.md)
 
 Trying to make our own hello world kernel module.
 
-## 0x01. How?
+## 0x01. How to do it?
 
-### A. 
+### A. Prepare source code and makefile
 
-1. xx
+* You can direct use the file just under the folder **hello_kernel_module**
+
+#### 1. Source code
+
+```c
+// filename : hello_kernel_module.c
+
+#include <linux/init.h>
+#include <linux/kernel.h>
+#include <linux/module.h>
+
+MODULE_LICENSE("GPL");
+MODULE_AUTHOR("YOUR_NAME");
+MODULE_DESCRIPTION("A simple kernel module example for Linux");
+
+/* Functions define */
+static int __init hello_init(void) {
+    // This is a function that will be called when the module is loaded
+    printk(KERN_INFO "Hello, Kernel!\n");
+    return 0;  // success
+}
+static void __exit hello_exit(void) {
+    // This is a function that will be called when the module is removed
+    printk(KERN_INFO "Goodbye, Kernel!\n");
+}
+
+/* register function to the kernel */
+module_init(hello_init);
+module_exit(hello_exit);
+
+```
+
+#### 2. Makefile
+
+```shell
+# filename : Makefile
+
+obj-m += hello_kernel_module.o  
+
+all:
+	make -C /lib/modules/$(shell uname -r)/build M=$(shell pwd) modules
+
+clean:
+	make -C /lib/modules/$(shell uname -r)/build M=$(shell pwd) clean
+```
+
+* Note : two files should under the same path
+
+### B. Prepare tools
+
+* install kernel header
+
+    ```shell
+    sudo apt-get install linux-headers-$(uname -r)
+    ```
+
+    ![alt text](<pics/截圖 2024-10-01 凌晨1.11.16.jpeg>)
+
+### C. Compile kernel module
+
+* command : ```sudo make``` or ```sudo make all```
+* You can see **hello_kernel_module.ko** if you compiled successful.
+    ![alt text](<pics/截圖 2024-10-01 凌晨1.13.48.jpeg>)
+
+### D. Install, remove and check
+
+* Before kernel module installed
+![alt text](<pics/截圖 2024-10-01 凌晨1.15.17.jpeg>)
+* install kernel module and check the log
+  * by command ```sudo insmod hello_kernel_module.ko```
+  * you can see **"Hello, kernel!"** in log.
+![alt text](<pics/截圖 2024-10-01 凌晨1.15.32.jpeg>)
+* remove kernel module and check the log
+  * by command ```sudo rmmod hello_kernel_module```
+  * you can see **"Goodbye, kernel!"** in log.
+![alt text](<pics/截圖 2024-10-01 凌晨1.16.10.jpeg>)
+
+### E. Clean the compile result
+
+* By command ```sudo clean```
+* you can see all ```.mod``` ```.mod.c``` ```.o``` ```.ko``` ... etc being removed
+![alt text](<pics/截圖 2024-10-01 凌晨1.44.18.jpeg>)
 
 ## 0x02. Notes
 
@@ -82,14 +163,14 @@ clean:
   * 撰寫規則如下 :
 
     ```shell
-    <target>: <dependiency1> <dependiency2> <dependiency3>...
+    <target>: <dependency1> <dependency2> <dependency3>...
     <tab><rule1>
     <tab><rule2>
     ```
 
-    * target 的可執行與否，依賴於所有 dependiency 是否滿足
+    * target 的可執行與否，依賴於所有 dependency 是否滿足
     * 對於所有的 rule，前面都是 tab，而不是空格
-  * 其他 : 
+  * 其他 :
     * 當只執行單單一個 make 時，Makefile 會執行第一個出現的目標（通常是 all），除非你指定了特定目標 (e.g. clean)
 * **關於指令 (rules)**
   * make 的 **-C** 參數
@@ -129,7 +210,16 @@ clean:
 * **其他小細節**
   * filename **SHOULD** same as "Makefile" at spelling and upper/lower case
 
-## 0x03. ref
+## 0x0E. issue list
+
+### A. make error : PWD not found
+
+* Screen shot :
+  ![alt text](<pics/截圖 2024-10-01 凌晨1.13.19.jpeg>)
+* How to solve :
+  * change the ```$(PWD)``` into ```$(shell pwd)``` in the Makefile.
+
+## 0x0F. ref
 
 [[Linux Kernel慢慢學]快速上手Makefile和Kbuild Makefile](https://meetonfriday.com/posts/5523c739/)
 
